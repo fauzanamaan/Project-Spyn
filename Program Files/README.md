@@ -86,18 +86,18 @@ LeftMotorPort = 'C';  % Define the port for the left motor
 RightMotorPort = 'A';  % Define the port for the right motor
 BothMotorPort = [RightMotorPort, LeftMotorPort];  % Array for both motors
 ```
-###Movement Control:
+### Movement Control:
 
-Move Forward: To drive both motors forward:
+**Move Forward:** To drive both motors forward:
 `brick.MoveMotor(BothMotorPort, 45);  % Move at 45% power`
 
-Stop Motors: To stop both motors with a braking command:
+**Stop Motors:** To stop both motors with a braking command:
 `brick.StopMotor(BothMotorPort, 'Brake');`
 
-Reverse: Move both motors backward at a specific power level:
+**Reverse:** Move both motors backward at a specific power level:
 `brick.MoveMotor(BothMotorPort, -50);  % Reverse at 50% power`
 
-Turning: Turn by activating one motor at a time.
+**Turning:** Turn by activating one motor at a time.
 ```
 % Turn Right
 brick.MoveMotor(RightMotorPort, 50);  % Turn by moving only the right motor
