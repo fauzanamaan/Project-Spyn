@@ -1,46 +1,103 @@
 brick.beep(); % Ensures connection is secure
 
-% Constants (Set these when testing)
+% Constants
 status = true;
-ColorPortNumber = 4; % Define port
-TouchPortNumber = 1; % Define port
-UltrasonicPortNumber = 3; % Define port
-LeftMotorPort = 'C'; % Define port
-RightMotorPort = 'A'; % Define port
-threshold = 10; % Set appropriate distance threshold for wall avoidance
+ColorPortNumber = 4;
+TouchPortNumber = 1;
+UltrasonicPortNumber = 3;
+LeftMotorPort = 'C';
+RightMotorPort = 'A';
+threshold = 18;
 BothMotorPort = RightMotorPort + LeftMotorPort; % Array for both motors
 
-% Sensor Initialization
-brick.SetColorMode(ColorPortNumber, 2); % Set to color code mode
+% Color Sensor Initialization - MODE
+brick.SetColorMode(ColorPortNumber, 2);
 
 % Run manual control script at the start
 run('kbrdcontrol');
 
-while status
-    % Quick Color Reading
-    colorReading = brick.ColorCode(ColorPortNumber);
-    disp('Color Reading');
-    disp(colorReading);
+% Brick Battery Check
+brickBattery = brick.GetBattVoltage();
+if brickBattery < 40
+    disp('LOW BATTERY!');
+    disp('Please display battery before continuing');
+    status = false;
+else
+    disp('SUFFICIENT BATTERY!');
+    disp(brickBattery);
+    status = true;
+    disp('Beginning Autonomous Mode');
+    disp('-------------------------');
+end
 
-    % Touch Sensor Reading
-    touchReading = brick.TouchPressed(TouchPortNumber);
-    disp(['Touch Reading: ', num2str(touchReading)]);
+% Function to Check Repeated Color Detection
+function check = repeatedColorDetection(brick, ColorPortNumber, targetColor)
+    count = 0;
+    check = false;
+    while count < 2
+        pause(0.5);
+        colorReading = brick.ColorCode(ColorPortNumber);
+        fprintf('Color Reading: %d \n', colorReading);
+        if colorReading == targetColor
+            check = true;
+        else
+            disp('Color Detected Incorrectly!');
+            check = false;
+            break;
+        end
+        count = count + 1;
+    end
+end
+
+% Autonomous Mode
+while status
+
+    % Color Reading
+    colorReading = brick.ColorCode(ColorPortNumber);
+    fprintf('Color Reading: %d \n', colorReading);
 
     % Color-Based Actions
-    if colorReading == 5 % Break condition
+    if colorReading == 5 
+        % Red Color
         disp("Immediate Break");
         brick.StopMotor(BothMotorPort, 'Brake'); % Use direct brake command
         pause(3); % Short pause to process the stop
         brick.MoveMotor(BothMotorPort, 20); % Resume movement
         pause(3);
-        
-    elseif colorReading == 2 || colorReading == 3 || colorReading == 4 % Start manual control if specific colors detected
-        disp("Color Detected, Switching to Manual Mode");
-        run('kbrdcontrol'); % Manual mode script
+
+    % Blue Color Detected
+    elseif colorReading == 2
+        if repeatedColorDetection(brick, ColorPortNumber, 2)
+            disp('Color Blue Detected');
+            disp('Transferring to Manual Control');
+            run('kbrdcontrol');
+        end
+
+    % Green Color Detected
+    elseif colorReading == 3
+        if repeatedColorDetection(brick, ColorPortNumber, 3)
+            disp('Color Green Detected');
+            disp('Transferring to Manual Control');
+            run('kbrdcontrol');
+        end
+
+    % Yellow Color Detected    
+    elseif colorReading == 4
+        if repeatedColorDetection(brick, ColorPortNumber, 4)
+            disp('Color Yellow Detected');
+            disp('Transferring to Manual Control');
+            run('kbrdcontrol');
+        end
+
+    % Other Colors Detected    
     else
-        % Continue in Autonomous Mode at 20% Speed
-        brick.MoveMotor(BothMotorPort, 25);
+        % Continue in Autonomous Mode at 45% Speed
+        brick.MoveMotor(BothMotorPort, 45);
     end
+
+    % Touch Sensor Reading
+    touchReading = brick.TouchPressed(TouchPortNumber);
+    fprintf('Touch Reading: %d \n', touchReading);
 
     % Check if Wall Touched
     if touchReading
@@ -67,5 +124,5 @@ while status
             brick.StopMotor(LeftMotorPort, 'Coast');
         end
     end
+    pause(0.1);
 end
-
