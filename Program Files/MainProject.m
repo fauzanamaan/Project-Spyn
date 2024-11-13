@@ -8,7 +8,6 @@ UltrasonicPortNumber = 3;
 LeftMotorPort = 'C';
 RightMotorPort = 'A';
 threshold = 18;
-BothMotorPort = RightMotorPort + LeftMotorPort; % Array for both motors
 
 % Color Sensor Initialization - MODE
 brick.SetColorMode(ColorPortNumber, 2);
@@ -51,48 +50,53 @@ end
 
 % Autonomous Mode
 while status
-
     % Color Reading
     colorReading = brick.ColorCode(ColorPortNumber);
     fprintf('Color Reading: %d \n', colorReading);
 
     % Color-Based Actions
-    if colorReading == 5 
-        % Red Color
-        disp("Immediate Break");
-        brick.StopMotor(BothMotorPort, 'Brake'); % Use direct brake command
-        pause(3); % Short pause to process the stop
-        brick.MoveMotor(BothMotorPort, 20); % Resume movement
+    if colorReading == 5  % Red Color Detected
+        disp("Red Color Detected - Immediate Stop");
+        brick.StopMotor(LeftMotorPort, 'Brake');
+        brick.StopMotor(RightMotorPort, 'Brake');
+        pause(2);  % Wait for 2 seconds when red is detected
+        disp("Resuming Movement");
+        brick.MoveMotor(LeftMotorPort, 20);  % Continue forward
+        brick.MoveMotor(RightMotorPort, 20); 
         pause(3);
 
     % Blue Color Detected
     elseif colorReading == 2
         if repeatedColorDetection(brick, ColorPortNumber, 2)
-            disp('Color Blue Detected');
+            disp('Blue Color Detected');
             disp('Transferring to Manual Control');
+            brick.StopMotor(LeftMotorPort, 'Brake');
+            brick.StopMotor(RightMotorPort, 'Brake');
             run('kbrdcontrol');
-        end
 
     % Green Color Detected
     elseif colorReading == 3
         if repeatedColorDetection(brick, ColorPortNumber, 3)
-            disp('Color Green Detected');
+            disp('Green Color Detected');
             disp('Transferring to Manual Control');
+            brick.StopMotor(LeftMotorPort, 'Brake');
+            brick.StopMotor(RightMotorPort, 'Brake');
             run('kbrdcontrol');
-        end
 
-    % Yellow Color Detected    
+    % Yellow Color Detected
     elseif colorReading == 4
         if repeatedColorDetection(brick, ColorPortNumber, 4)
-            disp('Color Yellow Detected');
+            disp('Yellow Color Detected');
             disp('Transferring to Manual Control');
+            brick.StopMotor(LeftMotorPort, 'Brake');
+            brick.StopMotor(RightMotorPort, 'Brake');
             run('kbrdcontrol');
-        end
 
-    % Other Colors Detected    
+    % Other Colors Detected
     else
         % Continue in Autonomous Mode at 45% Speed
-        brick.MoveMotor(BothMotorPort, 45);
+        brick.MoveMotor(LeftMotorPort, 45);
+        brick.MoveMotor(RightMotorPort, 45);
     end
 
     % Touch Sensor Reading
@@ -102,9 +106,11 @@ while status
     % Check if Wall Touched
     if touchReading
         disp('Wall Detected!');
-        brick.MoveMotor(BothMotorPort, -50); % Reverse
+        brick.MoveMotor(LeftMotorPort, -50); % Reverse Left Motor
+        brick.MoveMotor(RightMotorPort, -50); % Reverse Right Motor
         pause(1); % Short pause for better reversal control
-        brick.StopMotor(BothMotorPort, 'Coast'); % Stop both motors
+        brick.StopMotor(LeftMotorPort, 'Coast');
+        brick.StopMotor(RightMotorPort, 'Coast');
         
         % Read Left Side Distance
         LeftDistance = brick.UltrasonicDist(UltrasonicPortNumber);
@@ -114,12 +120,12 @@ while status
         % Conditional Turning based on distance
         if LeftDistance > threshold
             disp('Turning Right');
-            brick.MoveMotor(RightMotorPort, 50); % Move right motor to turn right
+            brick.MoveMotor(RightMotorPort, 50); % Turn Right
             pause(1.5);
             brick.StopMotor(RightMotorPort, 'Coast');
         else
             disp('Turning Left');
-            brick.MoveMotor(LeftMotorPort, 50); % Move left motor to turn left
+            brick.MoveMotor(LeftMotorPort, 50); % Turn Left
             pause(1.5);
             brick.StopMotor(LeftMotorPort, 'Coast');
         end
