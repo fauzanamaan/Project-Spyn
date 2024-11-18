@@ -7,27 +7,15 @@ TouchPortNumber = 1;
 UltrasonicPortNumber = 3;
 LeftMotorPort = 'C';
 RightMotorPort = 'A';
-threshold = 18;
+threshold = 12;
 
 % Color Sensor Initialization - MODE
 brick.SetColorMode(ColorPortNumber, 2);
 
+
+
 % Run manual control script at the start
 run('kbrdcontrol');
-
-% Brick Battery Check
-brickBattery = brick.GetBattVoltage();
-if brickBattery < 40
-    disp('LOW BATTERY!');
-    disp('Please display battery before continuing');
-    status = false;
-else
-    disp('SUFFICIENT BATTERY!');
-    disp(brickBattery);
-    status = true;
-    disp('Beginning Autonomous Mode');
-    disp('-------------------------');
-end
 
 % Function to Check Repeated Color Detection
 function check = repeatedColorDetection(brick, ColorPortNumber, targetColor)
@@ -68,20 +56,30 @@ while status
     % Blue Color Detected
     elseif colorReading == 2
         if repeatedColorDetection(brick, ColorPortNumber, 2)
+            brick.beep();
+            pause(0.1);
+            brick.beep();
             disp('Blue Color Detected');
             disp('Transferring to Manual Control');
             brick.StopMotor(LeftMotorPort, 'Brake');
             brick.StopMotor(RightMotorPort, 'Brake');
             run('kbrdcontrol');
+        end
 
     % Green Color Detected
     elseif colorReading == 3
         if repeatedColorDetection(brick, ColorPortNumber, 3)
+            brick.beep();
+            pause(0.1);
+            brick.beep();
+            pause(0.1);
+            brick.beep();
             disp('Green Color Detected');
             disp('Transferring to Manual Control');
             brick.StopMotor(LeftMotorPort, 'Brake');
             brick.StopMotor(RightMotorPort, 'Brake');
             run('kbrdcontrol');
+        end
 
     % Yellow Color Detected
     elseif colorReading == 4
@@ -91,12 +89,13 @@ while status
             brick.StopMotor(LeftMotorPort, 'Brake');
             brick.StopMotor(RightMotorPort, 'Brake');
             run('kbrdcontrol');
+        end
 
     % Other Colors Detected
     else
         % Continue in Autonomous Mode at 45% Speed
-        brick.MoveMotor(LeftMotorPort, 45);
-        brick.MoveMotor(RightMotorPort, 45);
+        brick.MoveMotor(LeftMotorPort, 50);
+        brick.MoveMotor(RightMotorPort, 50);
     end
 
     % Touch Sensor Reading
@@ -121,12 +120,14 @@ while status
         if LeftDistance > threshold
             disp('Turning Right');
             brick.MoveMotor(RightMotorPort, 50); % Turn Right
-            pause(1.5);
+            brick.MoveMotor(LeftMotorPort, -50);
+            pause(1);
             brick.StopMotor(RightMotorPort, 'Coast');
         else
             disp('Turning Left');
             brick.MoveMotor(LeftMotorPort, 50); % Turn Left
-            pause(1.5);
+            brick.MoveMotor(RightMotorPort, -50);
+            pause(1);
             brick.StopMotor(LeftMotorPort, 'Coast');
         end
     end
