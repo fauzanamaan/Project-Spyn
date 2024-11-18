@@ -23,11 +23,11 @@ while 1
             
         case 'w'
             %disp('Crane Up');
-            brick.MoveMotorAngleRel('D', 7, 15, 'Coast');
+            brick.MoveMotorAngleRel('D', 20, 15, 'Coast');
             
         case 's'
             %disp('Crane Down');
-            brick.MoveMotorAngleRel('D', 7, -15, 'Coast');
+            brick.MoveMotorAngleRel('D', 20, -15, 'Coast');
             pause(2);
             
         case 'q'
