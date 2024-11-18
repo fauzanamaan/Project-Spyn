@@ -7,7 +7,7 @@ TouchPortNumber = 1;
 UltrasonicPortNumber = 3;
 LeftMotorPort = 'C';
 RightMotorPort = 'A';
-threshold = 12;
+threshold = 15.4;
 
 % Color Sensor Initialization - MODE
 brick.SetColorMode(ColorPortNumber, 2);
@@ -49,7 +49,7 @@ while status
         brick.StopMotor(RightMotorPort, 'Brake');
         pause(2);  % Wait for 2 seconds when red is detected
         disp("Resuming Movement");
-        brick.MoveMotor(LeftMotorPort, 20);  % Continue forward
+        brick.MoveMotor(LeftMotorPort, 21);  % Continue forward
         brick.MoveMotor(RightMotorPort, 20); 
         pause(3);
 
@@ -94,7 +94,7 @@ while status
     % Other Colors Detected
     else
         % Continue in Autonomous Mode at 45% Speed
-        brick.MoveMotor(LeftMotorPort, 50);
+        brick.MoveMotor(LeftMotorPort, 51);
         brick.MoveMotor(RightMotorPort, 50);
     end
 
@@ -105,29 +105,29 @@ while status
     % Check if Wall Touched
     if touchReading
         disp('Wall Detected!');
-        brick.MoveMotor(LeftMotorPort, -50); % Reverse Left Motor
+        brick.MoveMotor(LeftMotorPort, -51); % Reverse Left Motor
         brick.MoveMotor(RightMotorPort, -50); % Reverse Right Motor
         pause(1); % Short pause for better reversal control
         brick.StopMotor(LeftMotorPort, 'Coast');
         brick.StopMotor(RightMotorPort, 'Coast');
         
         % Read Left Side Distance
-        LeftDistance = brick.UltrasonicDist(UltrasonicPortNumber);
+        RightDistance = brick.UltrasonicDist(UltrasonicPortNumber);
         disp('Distance Reading');
-        disp(LeftDistance);
+        disp(RightDistance);
         
         % Conditional Turning based on distance
-        if LeftDistance > threshold
-            disp('Turning Right');
-            brick.MoveMotor(RightMotorPort, 50); % Turn Right
+        if RightDistance < threshold
+            disp('Turning Left');
+            brick.MoveMotor(RightMotorPort, 50); % Turn Left
             brick.MoveMotor(LeftMotorPort, -50);
-            pause(1);
+            pause(0.42);
             brick.StopMotor(RightMotorPort, 'Coast');
         else
-            disp('Turning Left');
-            brick.MoveMotor(LeftMotorPort, 50); % Turn Left
+            disp('Turning Right');
+            brick.MoveMotor(LeftMotorPort, 50); % Turn Right
             brick.MoveMotor(RightMotorPort, -50);
-            pause(1);
+            pause(0.42);
             brick.StopMotor(LeftMotorPort, 'Coast');
         end
     end
