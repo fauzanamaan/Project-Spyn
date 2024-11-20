@@ -8,6 +8,8 @@ UltrasonicPortNumber = 3;
 LeftMotorPort = 'C';
 RightMotorPort = 'A';
 threshold = 15.4;
+LeftMotorPower = 53;
+RightMotorPower = 50;
 
 % Color Sensor Initialization - MODE
 brick.SetColorMode(ColorPortNumber, 2);
@@ -49,9 +51,10 @@ while status
         brick.StopMotor(RightMotorPort, 'Brake');
         pause(2);  % Wait for 2 seconds when red is detected
         disp("Resuming Movement");
-        brick.MoveMotor(LeftMotorPort, 21);  % Continue forward
-        brick.MoveMotor(RightMotorPort, 20); 
-        pause(3);
+        % Continue forward
+        brick.MoveMotor(LeftMotorPort, LeftMotorPower - 20);  
+        brick.MoveMotor(RightMotorPort, RightMotorPower - 20); 
+        pause(2.5);
 
     % Blue Color Detected
     elseif colorReading == 2
@@ -93,9 +96,9 @@ while status
 
     % Other Colors Detected
     else
-        % Continue in Autonomous Mode at 45% Speed
-        brick.MoveMotor(LeftMotorPort, 51);
-        brick.MoveMotor(RightMotorPort, 50);
+        % Continue in Autonomous Mode
+        brick.MoveMotor(LeftMotorPort, LeftMotorPower);
+        brick.MoveMotor(RightMotorPort, RightMotorPower);
     end
 
     % Touch Sensor Reading
@@ -105,8 +108,8 @@ while status
     % Check if Wall Touched
     if touchReading
         disp('Wall Detected!');
-        brick.MoveMotor(LeftMotorPort, -51); % Reverse Left Motor
-        brick.MoveMotor(RightMotorPort, -50); % Reverse Right Motor
+        brick.MoveMotor(LeftMotorPort, (LeftMotorPower*(-1))); % Reverse Left Motor
+        brick.MoveMotor(RightMotorPort, (RightMotorPower*(-1))); % Reverse Right Motor
         pause(1); % Short pause for better reversal control
         brick.StopMotor(LeftMotorPort, 'Coast');
         brick.StopMotor(RightMotorPort, 'Coast');
@@ -121,15 +124,36 @@ while status
             disp('Turning Left');
             brick.MoveMotor(RightMotorPort, 50); % Turn Left
             brick.MoveMotor(LeftMotorPort, -50);
-            pause(0.42);
+            pause(0.65);
             brick.StopMotor(RightMotorPort, 'Coast');
+            brick.StopMotor(LeftMotorPort, 'Coast');
         else
             disp('Turning Right');
             brick.MoveMotor(LeftMotorPort, 50); % Turn Right
             brick.MoveMotor(RightMotorPort, -50);
-            pause(0.42);
+            pause(0.65);
             brick.StopMotor(LeftMotorPort, 'Coast');
+            brick.StopMotor(RightMotorPort, 'Coast');
         end
     end
+
+    % Checking for Huge Gaps to Turn to!
+    RightDistance = brick.UltrasonicDist(UltrasonicPortNumber);
+    if RightDistance > 54
+        brick.StopMotor('AC', 'Brake');
+        disp('Huge Gap Detected!');
+        pause(0.5);
+        brick.MoveMotor(LeftMotorPort, 50); % Turn Right
+        brick.MoveMotor(RightMotorPort, -50);
+        pause(0.65);
+        brick.StopMotor(LeftMotorPort, 'Coast');
+        brick.StopMotor(RightMotorPort, 'Coast');
+
+        brick.MoveMotor(LeftMotorPort, LeftMotorPower);
+        brick.MoveMotor(RightMotorPort, RightMotorPower);
+        pause(1.5);
+    end
+
+
     pause(0.1);
 end
