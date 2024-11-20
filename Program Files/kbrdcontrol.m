@@ -6,18 +6,20 @@ while 1
         case 'uparrow'
             %disp('Up');
             brick.MoveMotor('A', 30);
-            brick.MoveMotor('C', 31);
+            brick.MoveMotor('C', 33);
             
         case 'downarrow'
             %disp('Down');
             brick.MoveMotor('A', -30);
-            brick.MoveMotor('C', -31);
+            brick.MoveMotor('C', -33);
             
         case 'leftarrow'
             brick.MoveMotor('A', 50);
+            brick.MoveMotor('C', -50);
             
         case 'rightarrow'
             brick.MoveMotor('C', 50);
+            brick.MoveMotor('A', -50)
             
         case 0
             %disp('No Key Press');
