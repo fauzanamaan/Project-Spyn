@@ -7,13 +7,14 @@ TouchPortNumber = 1;
 UltrasonicPortNumber = 3;
 LeftMotorPort = 'C';
 RightMotorPort = 'A';
-threshold = 36;
+
+% Variables
+threshold = 36;      % --> Used for the implementatio of turning when a wall is detected on the front of the car
 LeftMotorPower = 50;
 RightMotorPower = 50;
 
 % Color Sensor Initialization - MODE
 brick.SetColorMode(ColorPortNumber, 2);
-
 
 
 % Run manual control script at the start
@@ -46,44 +47,55 @@ while status
 
     % Color-Based Actions
     if colorReading == 5  % Red Color Detected
-        gap = false;
+        gap = false; 
+
+        % Immediate Stop
         disp("Red Color Detected - Immediate Stop");
         brick.StopMotor(LeftMotorPort, 'Brake');
         brick.StopMotor(RightMotorPort, 'Brake');
-        pause(2);  % Wait for 2 seconds when red is detected
+        pause(2); 
+
+        % Resuming Movement
         disp("Resuming Movement");
-        % Continue forward
         brick.MoveMotor(LeftMotorPort, LeftMotorPower - 10);  
         brick.MoveMotor(RightMotorPort, RightMotorPower - 10); 
         pause(3.7);
+
+        % Checking Distances on both sides of the car
         RightDistance = brick.UltrasonicDist(UltrasonicPortNumber);
+        disp('Distance Reading');
         disp(RightDistance);
         if RightDistance > 66
+            % If gap is great enough, turn right!
             brick.MoveMotor(LeftMotorPort, 50);
             brick.MoveMotor(RightMotorPort, -50);
             pause(0.5);
-            gap = true;
-        end
-        if gap == false
-            brick.MoveMotor(LeftMotorPort, 50);
-            brick.MoveMotor(RightMotorPort, -50);
+
+        else
+            % Rotate 180 degrees
+            brick.MoveMotor(LeftMotorPort, -50);
+            brick.MoveMotor(RightMotorPort, 50);
             pause(0.87);
             brick.StopMotor(LeftMotorPort, 'Coast');
             brick.StopMotor(RightMotorPort, 'Coast');
+
+            % Measure Gap again
             RightDistance = brick.UltrasonicDist(UltrasonicPortNumber);
+            disp('Distance Reading');
             disp(RightDistance);
-            if RightDistance > 66
+            if RightDistance > 80
+                % If gap is large, turn right
                 brick.MoveMotor(LeftMotorPort, 50);
                 brick.MoveMotor(RightMotorPort, -50);
                 pause(0.5);
             else
+                % If gap is small, rotate back 180 degrees
                 brick.MoveMotor(LeftMotorPort, 50);
                 brick.MoveMotor(RightMotorPort, -50);
                 pause(0.87);
             end
             brick.StopMotor(LeftMotorPort, 'Coast');
             brick.StopMotor(RightMotorPort, 'Coast');
-
         end
 
 
