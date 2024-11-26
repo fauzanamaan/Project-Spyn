@@ -7,8 +7,8 @@ TouchPortNumber = 1;
 UltrasonicPortNumber = 3;
 LeftMotorPort = 'C';
 RightMotorPort = 'A';
-threshold = 15.4;
-LeftMotorPower = 53;
+threshold = 36;
+LeftMotorPower = 50;
 RightMotorPower = 50;
 
 % Color Sensor Initialization - MODE
@@ -23,7 +23,7 @@ run('kbrdcontrol');
 function check = repeatedColorDetection(brick, ColorPortNumber, targetColor)
     count = 0;
     check = false;
-    while count < 2
+    while count < 1
         pause(0.5);
         colorReading = brick.ColorCode(ColorPortNumber);
         fprintf('Color Reading: %d \n', colorReading);
@@ -46,15 +46,47 @@ while status
 
     % Color-Based Actions
     if colorReading == 5  % Red Color Detected
+        gap = false;
         disp("Red Color Detected - Immediate Stop");
         brick.StopMotor(LeftMotorPort, 'Brake');
         brick.StopMotor(RightMotorPort, 'Brake');
         pause(2);  % Wait for 2 seconds when red is detected
         disp("Resuming Movement");
         % Continue forward
-        brick.MoveMotor(LeftMotorPort, LeftMotorPower - 20);  
-        brick.MoveMotor(RightMotorPort, RightMotorPower - 20); 
-        pause(2.5);
+        brick.MoveMotor(LeftMotorPort, LeftMotorPower - 10);  
+        brick.MoveMotor(RightMotorPort, RightMotorPower - 10); 
+        pause(3.7);
+        RightDistance = brick.UltrasonicDist(UltrasonicPortNumber);
+        disp(RightDistance);
+        if RightDistance > 66
+            brick.MoveMotor(LeftMotorPort, 50);
+            brick.MoveMotor(RightMotorPort, -50);
+            pause(0.5);
+            gap = true;
+        end
+        if gap == false
+            brick.MoveMotor(LeftMotorPort, 50);
+            brick.MoveMotor(RightMotorPort, -50);
+            pause(0.87);
+            brick.StopMotor(LeftMotorPort, 'Coast');
+            brick.StopMotor(RightMotorPort, 'Coast');
+            RightDistance = brick.UltrasonicDist(UltrasonicPortNumber);
+            disp(RightDistance);
+            if RightDistance > 66
+                brick.MoveMotor(LeftMotorPort, 50);
+                brick.MoveMotor(RightMotorPort, -50);
+                pause(0.5);
+            else
+                brick.MoveMotor(LeftMotorPort, 50);
+                brick.MoveMotor(RightMotorPort, -50);
+                pause(0.87);
+            end
+            brick.StopMotor(LeftMotorPort, 'Coast');
+            brick.StopMotor(RightMotorPort, 'Coast');
+
+        end
+
+
 
     % Blue Color Detected
     elseif colorReading == 2
@@ -122,38 +154,26 @@ while status
         % Conditional Turning based on distance
         if RightDistance < threshold
             disp('Turning Left');
-            brick.MoveMotor(RightMotorPort, 50); % Turn Left
+            brick.MoveMotor(RightMotorPort, -50); % Turn Left
             brick.MoveMotor(LeftMotorPort, -50);
-            pause(0.65);
+            pause(0.45);
             brick.StopMotor(RightMotorPort, 'Coast');
             brick.StopMotor(LeftMotorPort, 'Coast');
+            brick.MoveMotor(LeftMotorPort, -50);
+            brick.MoveMotor(RightMotorPort, 50);
+            pause(0.48);
         else
             disp('Turning Right');
-            brick.MoveMotor(LeftMotorPort, 50); % Turn Right
+            brick.MoveMotor(LeftMotorPort, -50); % Turn Right
             brick.MoveMotor(RightMotorPort, -50);
-            pause(0.65);
+            pause(0.45);
             brick.StopMotor(LeftMotorPort, 'Coast');
             brick.StopMotor(RightMotorPort, 'Coast');
+            brick.MoveMotor(LeftMotorPort, 50);
+            brick.MoveMotor(RightMotorPort, -50);
+            pause(0.48);
         end
     end
-
-    % Checking for Huge Gaps to Turn to!
-    RightDistance = brick.UltrasonicDist(UltrasonicPortNumber);
-    if RightDistance > 54
-        brick.StopMotor('AC', 'Brake');
-        disp('Huge Gap Detected!');
-        pause(0.5);
-        brick.MoveMotor(LeftMotorPort, 50); % Turn Right
-        brick.MoveMotor(RightMotorPort, -50);
-        pause(0.65);
-        brick.StopMotor(LeftMotorPort, 'Coast');
-        brick.StopMotor(RightMotorPort, 'Coast');
-
-        brick.MoveMotor(LeftMotorPort, LeftMotorPower);
-        brick.MoveMotor(RightMotorPort, RightMotorPower);
-        pause(1.5);
-    end
-
 
     pause(0.1);
 end
